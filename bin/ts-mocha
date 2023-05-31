@@ -2,6 +2,7 @@
 
 'use strict';
 
+var os = require('os');
 var path = require('path');
 var spawn = require('child_process').spawn;
 
@@ -29,6 +30,11 @@ process.argv.slice(2).forEach(function (arg, idx, arr) {
       process.env.TS_TYPE_CHECK = true;
       break;
 
+    case "--posix-exit-codes":
+      process.env.POSIX_EXIT_CODES = true;
+      mochaArgs.push(arg); // add when supported by mocha
+      break;
+
     default:
       // pass unrecognized args to mocha
       mochaArgs.push(arg);
@@ -40,9 +46,17 @@ var mocha = spawn(process.execPath, mochaArgs, {
   stdio: "inherit",
 });
 mocha.on('exit', function (code, signal) {
+  console.warn(`ts-mocha saw mocha exit with code ${code} and signal ${signal}`);
   process.on('exit', function () {
     if (signal) {
-      process.kill(process.pid, signal);
+      if(process.env.POSIX_EXIT_CODES == 'true') {
+        console.warn(`ts-mocha exiting with code ${128 + os.constants.signals[signal]}`)
+        process.exitCode = 128 +  os.constants.signals[signal];
+        process.exit(process.exitCode);
+      } else {
+        console.warn(`ts-mocha killing process with ${signal}; process.exitCode ${process.exitCode}`);
+        process.kill(process.pid, signal);
+      }
     } else {
       process.exit(code);
     }

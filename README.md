@@ -45,6 +45,8 @@ CLI options consist of all the options of regular Mocha plus extra options below
 
 `-p, --project <value>` - relative or absolute path to a `tsconfig.json` file (equivalent of `tsc -p <value>`) [default: "./tsconfig.json"]
 
+`--posix-exit-codes` - exit with non-zero POSIX code if interrupted with fatal signal
+
 **Example:**
 
 ```bash
